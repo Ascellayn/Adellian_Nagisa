@@ -22,7 +22,7 @@ async def Download(Requested: Type.Request_Download) -> fastapi.Response:
 	};
 	for pkg in Requested["Packages"]:
 		id: str = f"{pkg[0]}¤{pkg[1]}";
-		if (not File.Exists(f".cache/{id}.MikaArchive")): raise Exception(f"Package \"{id}\" does not exist.");
+		if (not File.Exists(f".cache/{id}.MikaArchive")): raise Not_Found(f"Package \"{id}\" does not exist.");
 	
 		nagisa_downloads["Packages"].append({
 			"ID": pkg[0],

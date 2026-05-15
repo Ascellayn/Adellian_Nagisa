@@ -5,6 +5,7 @@ JSON Formatted XZ Compressed Pickle'd File
 from TSN_Abstracter import *;
 import pickle, lzma;
 from typing import Literal;
+from .Globals import Not_Found;
 
 
 
@@ -82,7 +83,7 @@ def __Archiver(BASE: str, P: str = ".", MikaArchive: dict[str, Any] = {}) -> dic
 
 def Compress(Path: str, Output: str, mPKG: str, Option: str) -> None:
 	# Package Verification
-	if (mPKG not in File.List(f"{Path}/.adellian/")[1]): raise Exception(f"mPKG \"{mPKG}\" not found.");
+	if (mPKG not in File.List(f"{Path}/.adellian/")[1]): raise Not_Found(f"mPKG \"{mPKG}\" not found.");
 	mikapackage: MikaPackage = cast(MikaPackage, File.JSON_Read(f"{Path}/.adellian/{mPKG}"));
 
 	# Option Verification
@@ -90,7 +91,7 @@ def Compress(Path: str, Output: str, mPKG: str, Option: str) -> None:
 	for i, opt in enumerate(mikapackage["Options"]):
 		if (opt["Name"] == Option): optID = i;
 		else: del mikapackage["Options"][i];
-	if (optID == -1): raise Exception(f"Option \"{Option}\" not found.");
+	if (optID == -1): raise Not_Found(f"Option \"{Option}\" not found.");
 
 	Data: dict[str, bytes] = {};
 	for f in mikapackage["Data"][0]: # Folders
