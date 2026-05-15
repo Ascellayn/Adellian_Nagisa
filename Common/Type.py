@@ -36,6 +36,7 @@ class Package_Mika(TypedDict):
 	Dependencies: list[str];
 	Conflicts: list[str];
 	Options: list[Package_Option];
+	Data: tuple[list[str], list[str]];
 
 
 
@@ -61,7 +62,7 @@ class Nagisa_Files(TypedDict):
 
 class Nagisa_Download(TypedDict):
 	ID: str;
-	Files: list[Nagisa_Files];
+	Archive: bytes;
 
 
 

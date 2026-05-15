@@ -15,28 +15,34 @@ This is a FastAPI-Based Backend Server that delivers to the Adellian Package Man
 ## Mika Package Format
 Adellian Repositories must have a folder named `.adellian` containing a file named `Adellian.mpkg` with the following JSON:
 ```json
-{
-	"ID": str,
-	"Type": Literal["Adellian", "Debian"],
-	"Name": str,
-	"Description": str,
-	"Version": tuple[int, ...] | None,
-	"Required": Literal["Eleison", "Kyrie", "Server"] | None,
-	"Dependencies": list[str(f'{Type}¤{Name}')],
-	"Default": Literal["Eleison", "Kyrie", "Server"] | None,
-	"Conflicts": list[str(f'{Type}¤{Name}')],
-	"Options": list[
-		{
-			"Scripts": {
-				"Install": str,
-				"Uninstall": str,
-				"Updater": str | None
+[
+	{
+		"ID": str,
+		"Type": Literal["Adellian", "Debian"],
+		"Name": str,
+		"Description": str,
+		"Version": tuple[int, ...] | None,
+		"Required": Literal["Eleison", "Kyrie", "Server"] | None,
+		"Dependencies": list[str(f'{Type}¤{Name}')],
+		"Default": Literal["Eleison", "Kyrie", "Server"] | None,
+		"Conflicts": list[str(f'{Type}¤{Name}')],
+		"Options": list[
+			{
+				"Scripts": {
+					"Install": str,
+					"Uninstall": str,
+					"Updater": str | None
+				},
+				"Name": str,
+				"Description": str
 			},
-			"Name": str,
-			"Description": str
-		},
-		...
-	]
-}
+			...
+		],
+		"Data": [
+			str
+		]
+	},
+	...
+]
 ```
 Adellian PkgMHS can automatically detect `App.tsna` files and will overwrite (or add) certain values automatically.

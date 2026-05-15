@@ -7,6 +7,26 @@ import lzma, pickle, json;
 
 
 
+def __FileRead(P: str) -> bytes:
+	with open(P, "r+b") as F:
+		return F.read();
+
+
+
+def __MikaArchive(BASE: str, P: str = "./", MikaArchive: dict[str, Any] = {}) -> dict[str, bytes]:
+	T: File.Folder_Contents = File.List(BASE);
+
+	for f in T[1]: MikaArchive[f"{P}/{f}"] = __FileRead(f"{BASE}/{f}");
+	for f in T[0]:
+		for m in __MikaArchive(f"{BASE}/{f}", f"{P}/{f}").items():
+			MikaArchive[m[0]] = m[1];
+
+	return MikaArchive;
+
+
+
+
+
 @API.post("/v1/Download", tags=["Nagisa"], response_class=fastapi.Response)
 async def Download(Requested: Type.Request_Download) -> fastapi.Response:
 	Cached: Type.Nagisa_Packages = await Package.Acquire.All();
@@ -31,19 +51,13 @@ async def Download(Requested: Type.Request_Download) -> fastapi.Response:
 
 
 		# Add Files
-		mpkg: Type.Nagisa_Download = {
+		npkg: Type.Nagisa_Download = {
 			"ID": pkg[0],
-			"Files": [
-				{
-					"File": "Adellian.mpkg",
-					"Data": json.dumps(Cached["Packages"][pkgIndex]).encode()
-				}
-			]
+			"Archive": pickle.dumps(__MikaArchive(f"./.cache/{pkg[0]}/"))
 		};
 
-		# Figure out a way to add everything it needs for installation here, might need an update to the MikaPKG Format
 
-		nagisa_downloads["Packages"].append(mpkg);
+		nagisa_downloads["Packages"].append(npkg);
 	return fastapi.Response(
 		lzma.compress(
 			pickle.dumps(nagisa_downloads),
