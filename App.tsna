@@ -1,0 +1,14 @@
+{
+	"Name": "Adellian Mika Package Distributor",
+	"Description": "FastAPI-Based Backend Server that delivers to the Adellian Package Manager a way to easily download Adellian Packages (auto-updating) and Debian Packages that Adellian has patches for.",
+	"Author": ["Ascellayn", "The Sirio Network"],
+	"Contributors": [],
+	"License": "TSN License 2.2 - Base",
+	"License_Year": "2026",
+	"Codename": "Adellian_Nagisa",
+	"Branch": "Azure",
+	"Version": [0,0,0],
+	"Version_Prefix": "",
+	"Version_Suffix": "",
+	"TSNA": [6,1,0]
+}
