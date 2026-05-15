@@ -89,4 +89,4 @@ class Nagisa_Downloads(TypedDict):
 
 
 class Request_Download(TypedDict):
-	Packages: list[tuple[str, str]]
+	Packages: list[tuple[str, str]];

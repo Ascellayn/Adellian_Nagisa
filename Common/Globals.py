@@ -40,7 +40,7 @@ from Common.Routine import Lifespan;
 
 # Global Constants
 API: fastapi.FastAPI = fastapi.FastAPI(
-	title=App.Name, summary=App.Description, version=".".join(String.ify_Array(App.Version)),
+	title=App.Name, summary=App.Description, version=TSN_Abstracter.App_Version(),
 	debug=False, root_path="/", lifespan=Lifespan,
 	openapi_tags=[
 		{

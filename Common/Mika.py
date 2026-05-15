@@ -120,14 +120,3 @@ def Compress(Path: str, Output: str, mPKG: str, Option: str) -> None:
 				format=lzma.FORMAT_XZ, preset=9 | lzma.PRESET_EXTREME
 			)
 		);
-
-
-
-
-
-def Extract(Path: str, Output: str) -> None:
-	mikaarchive: MikaArchive = pickle.loads(lzma.decompress(__Read(Path), lzma.FORMAT_XZ));
-	File.Path_Require(f"{Output}/.adellian/");
-	File.JSON_Write(f"{Output}/.adellian/Adellian.mpkg", mikaarchive["Package"]);
-	for f in mikaarchive["Data"].items():
-		__Write(f"{Output}/{f[0][2:]}", f[1]);
