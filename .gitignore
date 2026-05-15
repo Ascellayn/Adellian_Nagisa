@@ -1,6 +1,7 @@
 # We ignore packages because they're automatically pulled
 Packages/
 .cache/
+Nagisa.cache
 
 __pycache__/
 *.pyc

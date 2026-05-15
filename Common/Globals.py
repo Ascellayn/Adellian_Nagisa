@@ -44,3 +44,6 @@ Packages_Cached: Type.Nagisa_Packages = {
 File.Path_Require("Packages/Adellian");
 File.Path_Require("Packages/Debian");
 File.Path_Require(".cache/");
+
+if (File.Exists("Nagisa.cache")):
+	Packages_Cached = cast(Type.Nagisa_Packages, File.JSON_Read("Nagisa.cache", True));

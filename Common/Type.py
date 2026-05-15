@@ -11,6 +11,7 @@ type Adellian_Branches = Literal["Eleison", "Kyrie", "Server"];
 
 
 class Package_Scripts(TypedDict):
+	Data: str;
 	Install: str;
 	Uninstall: str;
 	Update: str | None;
@@ -24,7 +25,7 @@ class Package_Option(TypedDict):
 
 
 
-class Package_Mika(TypedDict):
+class MikaPackage(TypedDict):
 	""" Adellian .MikaPackage JSON Format"""
 	ID: str;
 	Type: Literal["Adellian", "Debian"];
@@ -40,6 +41,14 @@ class Package_Mika(TypedDict):
 
 
 
+class MikaArchive(TypedDict):
+	_VERSION: tuple[int, int, int];
+	Package: MikaPackage;
+	Scripts: dict[str, bytes];
+	Data: dict[str, bytes];
+
+
+
 
 
 
@@ -50,7 +59,7 @@ class Package_Mika(TypedDict):
 class Nagisa_Packages(TypedDict):
 	Last_Update: int;
 	Error: list[str];
-	Packages: list[Package_Mika];
+	Packages: list[MikaPackage];
 
 
 

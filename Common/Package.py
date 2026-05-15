@@ -3,6 +3,8 @@ import httpx;
 import io, os, shutil, zipfile;
 import multiprocessing;
 
+from . import Mika;
+
 
 
 class Acquire:
@@ -19,6 +21,7 @@ class Acquire:
 
 		Packages_Cached = NagisaPKGs;
 		Packages_Lock = False;
+		File.JSON_Write(f"Nagisa.cache", Packages_Cached, True);
 		return NagisaPKGs;
 
 
@@ -32,7 +35,7 @@ class Acquire:
 			"Error": [],
 			"Packages": []
 		};
-		shutil.rmtree("./.cache/"); File.Path_Require("./.cache");
+		shutil.rmtree("./.cache/");
 		with multiprocessing.Pool() as P:
 			RESULTS: list[Type.Nagisa_Packages] = P.map(Acquire.Download, [x for x in enumerate(REPOSITORIES, start=1)]);
 		for R in RESULTS:
@@ -60,32 +63,32 @@ class Acquire:
 
 			# Extract it
 			A: zipfile.ZipFile = zipfile.ZipFile(io.BytesIO(R.content)); del R;
-			A.extractall(f"./.cache/{i}"); del A;
-			path: str = f"./.cache/{i}/{File.List(f'./.cache/{i}/')[0][0]}";
-
-			# Delete if invalid
-			if (not File.Exists(f"{path}/.adellian/Adellian.mpkg")):
-				shutil.rmtree(f"./.cache/{i}");
-				raise Exception(f"{REPO}: Adellian.mpkg not found!");
-
-			# Read Mika Package and clean up undistributed files
-			mPKG: Type.Package_Mika = cast(Type.Package_Mika, File.JSON_Read(f"{path}/.adellian/Adellian.mpkg"));
-			NagisaPKGs["Packages"].append(mPKG);
+			A.extractall(f".cache/{i}/"); del A;
+			path: str = f".cache/{i}/{File.List(f'.cache/{i}/')[0][0]}";
 
 
-			# Correct Folder Location
-			shutil.move(path, f"./.cache/{mPKG['ID']}"); shutil.rmtree(f"./.cache/{i}");
-			path = f"./.cache/{mPKG['ID']}";
+			# Find MikaPackages
+				# Delete if invalid
+			if (not File.Exists(f"{path}/.adellian/")):
+				shutil.rmtree(f".cache/{i}/");
+				raise Exception(f"{REPO}: .adellian not found!");
 
-			Files: File.Folder_Contents = File.List(path);
-			for f in Files[0]:
-				if (f not in mPKG["Data"][0] + [".adellian"]):
-					shutil.rmtree(f"{path}/{f}");
-			for f in Files[1]:
-				if (f not in mPKG["Data"][1] + [".adellian"]):
-					os.remove(f"{path}/{f}");
+			mPKGs: list[str] = [];
+			for f in File.List(f"{path}/.adellian/")[1]:
+				if (f.endswith(".mpkg")):
+					mPKGs.append(f"{path}/.adellian/{f}");
+			if (len(mPKGs) == 0): raise Exception(f"{REPO}: No MikaPackage found!");
 
 
+			# Read Mika Packages and initiate MikaArchive compilations
+			for mpkg in mPKGs:
+				mPKG: Type.MikaPackage = cast(Type.MikaPackage, File.JSON_Read(mpkg));
+				for opt in mPKG["Options"]:
+					Mika.Compress(path, f".cache/{mPKG['ID']}¤{opt['Name']}.MikaArchive", mpkg.split("/")[-1], opt["Name"]);
+				NagisaPKGs["Packages"].append(mPKG);
+
+			# Cleanup
+			shutil.rmtree(f".cache/{i}/");
 
 			Log.Awaited().OK(f"{round((Time.Get_Unix(True) - u_init) * 1000)}ms");
 

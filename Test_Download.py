@@ -4,11 +4,12 @@ import httpx, lzma, pickle;
 data = {
 	"Packages": [
 		[
-			"com.sirio-network.tsna+stable",
+			"TSN_Abstracter",
 			"Stable"
 		]
 	]
 };
 
 R: httpx.Response = httpx.post("http://127.0.0.1:8000/v1/Download", json=data);
-print(pickle.loads(lzma.decompress(R.content, lzma.FORMAT_XZ)));
+if (R.status_code != 200): print(R.content);
+else: print(pickle.loads(R.content));
