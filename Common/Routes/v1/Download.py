@@ -20,7 +20,7 @@ async def Download(Requested: Type.Request_Download) -> fastapi.Response:
 		# Verify Package Exists
 		pkgIndex: int = -1;
 		for i, cpkg in enumerate(Cached["Packages"]):
-			if (cpkg["Name"] == pkg[0]): pkgIndex = i; break;
+			if (cpkg["ID"] == pkg[0]): pkgIndex = i; break;
 		if (pkgIndex == -1): nagisa_downloads["Error"].append(f"Package \"{pkg[0]}\" does not exist."); continue;
 
 		# Verify Package Option Exists
@@ -32,7 +32,7 @@ async def Download(Requested: Type.Request_Download) -> fastapi.Response:
 
 		# Add Files
 		mpkg: Type.Nagisa_Download = {
-			"Name": "¤".join(pkg),
+			"ID": pkg[0],
 			"Files": [
 				{
 					"File": "Adellian.mpkg",

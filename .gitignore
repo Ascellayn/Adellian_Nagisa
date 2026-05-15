@@ -1,5 +1,6 @@
-# We ignore Adellian packages because they're automatically generated
-Packages/Adellian/
+# We ignore packages because they're automatically pulled
+Packages/
+.cache/
 
 __pycache__/
 *.pyc

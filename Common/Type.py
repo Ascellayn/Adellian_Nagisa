@@ -26,6 +26,7 @@ class Package_Option(TypedDict):
 
 class Package_Mika(TypedDict):
 	""" Adellian .MikaPackage JSON Format"""
+	ID: str;
 	Type: Literal["Adellian", "Debian"];
 	Name: str;
 	Description: str;
@@ -33,6 +34,7 @@ class Package_Mika(TypedDict):
 	Required: list[Literal[Adellian_Branches]];
 	Default: list[Literal[Adellian_Branches]];
 	Dependencies: list[str];
+	Conflicts: list[str];
 	Options: list[Package_Option];
 
 
@@ -58,7 +60,7 @@ class Nagisa_Files(TypedDict):
 
 
 class Nagisa_Download(TypedDict):
-	Name: str;
+	ID: str;
 	Files: list[Nagisa_Files];
 
 

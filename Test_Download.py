@@ -4,7 +4,7 @@ import httpx, lzma, pickle;
 data = {
 	"Packages": [
 		[
-			"TSN Abstracter",
+			"com.sirio-network.tsna+stable",
 			"Stable"
 		]
 	]

@@ -16,13 +16,15 @@ This is a FastAPI-Based Backend Server that delivers to the Adellian Package Man
 Adellian Repositories must have a folder named `.adellian` containing a file named `Adellian.mpkg` with the following JSON:
 ```json
 {
+	"ID": str,
 	"Type": Literal["Adellian", "Debian"],
 	"Name": str,
 	"Description": str,
 	"Version": tuple[int, ...] | None,
 	"Required": Literal["Eleison", "Kyrie", "Server"] | None,
-	"Default": Literal["Eleison", "Kyrie", "Server"] | None,
 	"Dependencies": list[str(f'{Type}¤{Name}')],
+	"Default": Literal["Eleison", "Kyrie", "Server"] | None,
+	"Conflicts": list[str(f'{Type}¤{Name}')],
 	"Options": list[
 		{
 			"Scripts": {
