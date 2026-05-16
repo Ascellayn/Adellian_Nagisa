@@ -1,7 +1,7 @@
 # Adellian "Mika" Package Distributor *(Adellian "Nagisa")*
 This is a FastAPI-Based Backend Server that delivers to the Adellian Package Manager a way to easily download Adellian Packages (auto-updating) and Debian Packages that Adellian has patches for.  
 
-## Mika Package Format
+## Mika Packages (Headers)
 Adellian Repositories must have a folder named `.adellian` containing files ending in `.mpkg` with the following JSON:
 ```json
 {
@@ -32,6 +32,9 @@ Adellian Repositories must have a folder named `.adellian` containing files endi
 }
 ```
 Nagisa automatically detects every `.mpkg` files and automatically builds `.MikaArchive` files in `.cache` to be easily distributed to clients.
+
+## Mika Rolls (Package Archives)
+See [MikaRoll ImHex Pattern File](./MikaRoll.hexpat) and [MikaRoll Utility](./Common/Mika.py).
 
 <br>
 
