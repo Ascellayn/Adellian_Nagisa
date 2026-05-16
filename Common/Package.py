@@ -82,7 +82,7 @@ class Acquire:
 
 			# Read Mika Packages and initiate MikaArchive compilations
 			for mpkg in mPKGs:
-				mPKG: Type.MikaPackage = cast(Type.MikaPackage, File.JSON_Read(mpkg));
+				mPKG: Type.MikaRoll_Header = cast(Type.MikaRoll_Header, File.JSON_Read(mpkg));
 				for opt in mPKG["Options"]:
 					Mika.Roll(path, f".cache/{mPKG['ID']}¤{opt['Name']}.MikaRoll", mpkg.split("/")[-1], opt["Name"]);
 				NagisaPKGs["Packages"].append(mPKG);

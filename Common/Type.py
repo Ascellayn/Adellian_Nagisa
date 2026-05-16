@@ -4,13 +4,12 @@ from typing import TypedDict, Literal;
 
 
 
+# MikaRoll Data Format
 type Adellian_Branches = Literal["Eleison", "Kyrie", "Server"];
 
 
 
-
-
-class Package_Scripts(TypedDict):
+class MikaRoll_PKGSrc(TypedDict):
 	Data: str;
 	Install: str;
 	Uninstall: str;
@@ -18,15 +17,15 @@ class Package_Scripts(TypedDict):
 
 
 
-class Package_Option(TypedDict):
-	Scripts: Package_Scripts;
+class MikaRoll_PKGOpt(TypedDict):
+	Scripts: MikaRoll_PKGSrc;
 	Name: str;
 	Description: str;
 
 
 
-class MikaPackage(TypedDict):
-	""" Adellian .MikaPackage JSON Format"""
+class MikaRoll_Header(TypedDict):
+	""" Adellian .MikaRoll JSON Format"""
 	ID: str;
 	Type: Literal["Adellian", "Debian"];
 	Name: str;
@@ -36,14 +35,12 @@ class MikaPackage(TypedDict):
 	Default: list[Literal[Adellian_Branches]];
 	Dependencies: list[str];
 	Conflicts: list[str];
-	Options: list[Package_Option];
+	Options: list[MikaRoll_PKGOpt];
 	Data: tuple[list[str], list[str]];
 
 
 
-class MikaArchive(TypedDict):
-	_VERSION: tuple[int, int, int];
-	Package: MikaPackage;
+class MikaRoll_Data(TypedDict):
 	Scripts: dict[str, bytes];
 	Data: dict[str, bytes];
 
@@ -59,7 +56,7 @@ class MikaArchive(TypedDict):
 class Nagisa_Packages(TypedDict):
 	Last_Update: int;
 	Error: list[str];
-	Packages: list[MikaPackage];
+	Packages: list[MikaRoll_Header];
 
 
 
