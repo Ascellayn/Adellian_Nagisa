@@ -1,21 +1,42 @@
 """
 Adellian "Mika" Archive Utility
-JSON Formatted XZ Compressed Pickle'd File
+JSON-ish Formatted XZ Compressed Pickle'd File
+
+
+## MikaRoll Archive File Format
+```hex
+4D 69 6B 61 52 6F 6C 6C     # File Signature ("MikaRoll")
+XX XX XX                    # MikaRoll Version (append each byte as a Little Endian int)
+         YY YY              # Size of MikaRoll Header (Max 64KiB) - (stored in Little Endian)
+               ?? ?? ??     # Reserved Bytes for future versions
+7zXZ{MikaRoll_Header}       # 7zXZ Compressed MikaRoll Header
+7zXZ{Pickle(MikaRoll_Data)} # MikaRoll Data, Pickle'd and then 7zXZ Compressed
+```
 """
 from TSN_Abstracter import *;
-import pickle, lzma;
+import pickle, lzma, json;
 from typing import Literal;
-from .Globals import Not_Found;
 
 
 
+
+
+# MikaRoll Header
+MIKAROLLER_VERSION: tuple[int, int, int] = (1,0,0);
+MIKAROLL_SIGNATURE: bytes = "MikaRoll".encode("ASCII");
+MIKAROLL_VERSION: bytes = b"".join([x.to_bytes(1, "little") for x in MIKAROLLER_VERSION]);
+MIKAROLL_RESERVED: bytes = b"\xFF\xFF\xFF"
+
+
+
+
+
+# MikaRoll Data Format
 type Adellian_Branches = Literal["Eleison", "Kyrie", "Server"];
 
 
 
-
-
-class Package_Scripts(TypedDict):
+class MikaRoll_PKGSrc(TypedDict):
 	Data: str;
 	Install: str;
 	Uninstall: str;
@@ -23,15 +44,15 @@ class Package_Scripts(TypedDict):
 
 
 
-class Package_Option(TypedDict):
-	Scripts: Package_Scripts;
+class MikaRoll_PKGOpt(TypedDict):
+	Scripts: MikaRoll_PKGSrc;
 	Name: str;
 	Description: str;
 
 
 
-class MikaPackage(TypedDict):
-	""" Adellian .MikaPackage JSON Format"""
+class MikaRoll_Header(TypedDict):
+	""" Adellian .MikaRoll JSON Format"""
 	ID: str;
 	Type: Literal["Adellian", "Debian"];
 	Name: str;
@@ -41,18 +62,21 @@ class MikaPackage(TypedDict):
 	Default: list[Literal[Adellian_Branches]];
 	Dependencies: list[str];
 	Conflicts: list[str];
-	Options: list[Package_Option];
+	Options: list[MikaRoll_PKGOpt];
 	Data: tuple[list[str], list[str]];
 
 
 
-class MikaArchive(TypedDict):
-	_VERSION: tuple[int, int, int];
-	Package: MikaPackage;
+class MikaRoll_Data(TypedDict):
 	Scripts: dict[str, bytes];
 	Data: dict[str, bytes];
 
 
+
+
+
+# Helper Functions / Classes
+class Not_Found(Exception): ...;
 
 
 
@@ -67,13 +91,14 @@ def __Write(P: str, D: bytes) -> None:
 
 
 
-def __Archiver(BASE: str, P: str = ".", MikaArchive: dict[str, Any] = {}) -> dict[str, bytes]:
-	T: File.Folder_Contents = File.List(BASE);
+
+
+def __Archiver(BASE: str, P: str = ".", MikaArchive: dict[str, bytes] | None = None) -> dict[str, bytes]:
+	if (not MikaArchive): MikaArchive = {};
+	T: File.Folder_Contents = File.List(BASE + "/");
 
 	for f in T[1]: MikaArchive[f"{P}/{f}"] = __Read(f"{BASE}/{f}");
-	for f in T[0]:
-		for m in __Archiver(f"{BASE}/{f}", f"{P}/{f}").items():
-			MikaArchive[m[0]] = m[1];
+	for f in T[0]: MikaArchive = MikaArchive | __Archiver(f"{BASE}/{f}", f"{P}/{f}");
 
 	return MikaArchive;
 
@@ -81,42 +106,87 @@ def __Archiver(BASE: str, P: str = ".", MikaArchive: dict[str, Any] = {}) -> dic
 
 
 
-def Compress(Path: str, Output: str, mPKG: str, Option: str) -> None:
-	# Package Verification
-	if (mPKG not in File.List(f"{Path}/.adellian/")[1]): raise Not_Found(f"mPKG \"{mPKG}\" not found.");
-	mikapackage: MikaPackage = cast(MikaPackage, File.JSON_Read(f"{Path}/.adellian/{mPKG}"));
 
+
+
+
+
+# Util Functions
+def Roll(Path: str, Output: str, MikaPackage: str | MikaRoll_Header, Option: str) -> None:
+	""" Creates a new MikaRoll Archive. """
+	Log.Info(f"Mika Roller Utility - {TSN_Abstracter.Version(MIKAROLLER_VERSION)}");
+	Log.Stateless(f"Rolling {Output}...");
+	Log.Stateless(f"Reading MikaPackage...");
+	if (not isinstance(MikaPackage, str)): HEADER: MikaRoll_Header = MikaPackage;
+	else:
+		p: str = f"{Path}/.adellian/{MikaPackage}";
+		if (not File.Exists(p)): raise FileNotFoundError(f"MikaPackage \"{Path}/.adellian/{MikaPackage}\" does not exist.");
+		HEADER: MikaRoll_Header = cast(MikaRoll_Header, File.JSON_Read(p)); del p;
+	del MikaPackage;
+	Log.Awaited().OK();
+
+
+
+	Log.Stateless(f"Validating MikaPackage...");
 	# Option Verification
-	optID: int = -1;
-	for i, opt in enumerate(mikapackage["Options"]):
-		if (opt["Name"] == Option): optID = i;
-		else: del mikapackage["Options"][i];
-	if (optID == -1): raise Not_Found(f"Option \"{Option}\" not found.");
-
-	Data: dict[str, bytes] = {};
-	for f in mikapackage["Data"][0]: # Folders
-		d: dict[str, bytes] = __Archiver(f"{Path}/{f}", f"./{f}");
-		for m in d.items():
-			Data[m[0]] = m[1];
-
-	for f in mikapackage["Data"][1]: # Files
-		Data["./" + f] = __Read(f"{Path}/{f}");
+	pkgopt: MikaRoll_PKGOpt | None = None;
+	for opt in HEADER["Options"]:
+		if (opt["Name"] == Option): pkgopt = opt; break;
+	if (not pkgopt): raise Not_Found(f"Option \"{Option}\" not found.");
+	HEADER["Options"] = [pkgopt];
+	del Option; del pkgopt;
+	Log.Awaited().OK();
 
 
 
-	mikaarchive: MikaArchive = {
-		"_VERSION": (1,0,0),
-		"Package": mikapackage,
-		"Scripts": __Archiver(f"{Path}/.adellian/{mikapackage['Options'][optID]['Scripts']['Data']}"),
-		"Data": Data
-	};
 
 
-	#print(mikaarchive);
-	with open(Output, "w+b") as f:
-		f.write(
-			lzma.compress(
-				pickle.dumps(mikaarchive),
-				format=lzma.FORMAT_XZ, preset=9 | lzma.PRESET_EXTREME
-			)
-		);
+	Log.Stateless(f"Adding Cutlery...");
+	scripts: dict[str, bytes] = __Archiver(f"{Path}/.adellian/{HEADER['Options'][0]['Scripts']['Data']}/");
+	Log.Awaited().OK(f"{len(scripts.keys())} files");
+
+
+
+	Log.Stateless(f"Cooking Roll...");
+	archive: dict[str, bytes] = {};
+	for f in HEADER["Data"][0]: archive = archive | __Archiver(f"{Path}/{f}", f"./{f}"); # Folders
+	for f in HEADER["Data"][1]: archive[f"./{f}"] = __Read(f"{Path}/{f}"); # Files
+	Log.Awaited().OK(f"{len(archive.keys())} files");
+
+
+
+
+
+
+	Log.Stateless(f"Wrapping Roll...");
+	MikaData: bytes = pickle.dumps({
+		"Scripts": scripts,
+		"Data": archive
+	});
+	size_uncompressed: float = round(len(MikaData) / 1024, 2);
+	Log.Awaited().OK(f"{size_uncompressed}KiB - Uncompressed");
+	del scripts; del archive;
+
+
+
+	Log.Stateless(f"Packaging Roll...");
+	MikaData = lzma.compress(MikaData, format=lzma.FORMAT_XZ, preset=9 | lzma.PRESET_EXTREME);
+	size_compressed: float = round(len(MikaData) / 1024, 2);
+	Log.Awaited().OK(f"{size_compressed}KiB - Compressed ({-100 + (round((size_compressed / size_uncompressed) * 100, 2))}%)");
+	del size_compressed; del size_uncompressed;
+
+
+	Log.Stateless(f"Labeling Roll...");
+	MikaHeader: bytes = lzma.compress(json.dumps(HEADER).encode("utf-8"), format=lzma.FORMAT_XZ, preset=9 | lzma.PRESET_EXTREME);
+	if (len(MikaHeader) > 65536): raise OverflowError(f"MikaHeader is over 64KiB in size! ({len(MikaHeader)} Bytes)");
+	Log.Awaited().OK();
+
+	Log.Stateless(f"Shipping Roll...");
+	with open(Output, "w+b") as f: f.write(b"");
+	with open(Output, "a+b") as MikaRoll:
+		MikaRoll.write(MIKAROLL_SIGNATURE + MIKAROLL_VERSION + len(MikaHeader).to_bytes(2, "little") + MIKAROLL_RESERVED + MikaHeader);
+		del MikaHeader;
+		MikaRoll.write(MikaData);
+		del MikaData;
+	Log.Awaited().OK();
+	Log.Awaited().OK(); # Don't forget the first awaited

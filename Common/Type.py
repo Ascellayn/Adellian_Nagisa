@@ -69,15 +69,9 @@ class Nagisa_Files(TypedDict):
 
 
 
-class Nagisa_Download(TypedDict):
-	ID: str;
-	Archive: bytes;
-
-
-
 class Nagisa_Downloads(TypedDict):
 	Error: list[str];
-	Packages: list[Nagisa_Download];
+	Packages: dict[str, bytes];
 
 
 

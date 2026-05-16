@@ -36,7 +36,7 @@ class Acquire:
 			"Packages": []
 		};
 		shutil.rmtree("./.cache/");
-		with multiprocessing.Pool() as P:
+		with multiprocessing.Pool(1) as P:
 			RESULTS: list[Type.Nagisa_Packages] = P.map(Acquire.Download, [x for x in enumerate(REPOSITORIES, start=1)]);
 		for r in RESULTS:
 			NagisaPKGs["Error"] += r["Error"];
@@ -84,7 +84,7 @@ class Acquire:
 			for mpkg in mPKGs:
 				mPKG: Type.MikaPackage = cast(Type.MikaPackage, File.JSON_Read(mpkg));
 				for opt in mPKG["Options"]:
-					Mika.Compress(path, f".cache/{mPKG['ID']}¤{opt['Name']}.MikaArchive", mpkg.split("/")[-1], opt["Name"]);
+					Mika.Roll(path, f".cache/{mPKG['ID']}¤{opt['Name']}.MikaRoll", mpkg.split("/")[-1], opt["Name"]);
 				NagisaPKGs["Packages"].append(mPKG);
 
 			# Cleanup
