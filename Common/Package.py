@@ -36,7 +36,7 @@ class Acquire:
 			"Packages": []
 		};
 		shutil.rmtree("./.cache/");
-		with multiprocessing.Pool(1) as P:
+		with multiprocessing.Pool() as P:
 			RESULTS: list[Type.Nagisa_Packages] = P.map(Acquire.Download, [x for x in enumerate(REPOSITORIES, start=1)]);
 		for r in RESULTS:
 			NagisaPKGs["Error"] += r["Error"];

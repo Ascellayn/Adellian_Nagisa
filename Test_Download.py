@@ -22,3 +22,5 @@ HeaderSize: int = int.from_bytes(MikaRoll[11:13], "little");
 Log.Stateless(f"MikaRoll Header Size: {HeaderSize}");
 print(json.dumps(json.loads(lzma.decompress(MikaRoll[16 : HeaderSize+16], lzma.FORMAT_XZ)), indent=2));
 Data: dict[str, dict[str, bytes]] = pickle.loads(lzma.decompress(MikaRoll[HeaderSize+16:], lzma.FORMAT_XZ));
+print(f"Script Files ({len(Data["Scripts"].keys())}):\n{Data["Scripts"].keys()}");
+print(f"Data Files ({len(Data["Data"].keys())}):\n{Data["Data"].keys()}");
